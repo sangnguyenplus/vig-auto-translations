@@ -18,18 +18,18 @@
                            name="vig_translate_driver"
                            value="google"
                            @if (setting('vig_translate_driver') == 'google' || empty(setting('vig_translate_driver'))) checked @endif
-                           class="setting-selection-option">{{ trans('plugins/vig-auto-translations::vig-auto-translations.goolge') }}
+                           class="setting-select-options">{{ trans('plugins/vig-auto-translations::vig-auto-translations.google') }}
                 </label>
                 <label>
                     <input type="radio"
                            name="vig_translate_driver"
                            value="aws"
                            @if (setting('vig_translate_driver') == 'aws') checked @endif
-                           class="setting-selection-option">{{ trans('plugins/vig-auto-translations::vig-auto-translations.aws') }}
+                           class="setting-select-options" data-target="#vig-translate-aws-settings">{{ trans('plugins/vig-auto-translations::vig-auto-translations.aws') }}
                 </label>
             </div>
 
-            <div class="mb-4 border rounded-top rounded-bottom p-3 bg-light">
+            <div id="vig-translate-aws-settings" data-type="aws" @class(['mb-4 border rounded-top rounded-bottom p-3 bg-light setting-wrapper', 'hidden' => setting('vig_translate_driver') != 'aws'])>
 
                 <div class="form-group mb-3">
                     <label class="text-title-field" for="vig_translate_aws_key">{{ trans('plugins/vig-auto-translations::vig-auto-translations.aws_key') }}</label>
