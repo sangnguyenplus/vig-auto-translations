@@ -1,0 +1,66 @@
+<div class="flexbox-annotated-section">
+    <div class="flexbox-annotated-section-annotation">
+        <div class="annotated-section-title pd-all-20">
+            <h2>{{ trans('plugins/vig-auto-translations::vig-auto-translations.title') }}</h2>
+        </div>
+        <div class="annotated-section-description pd-all-20 p-none-t">
+            <p class="color-note">{{ trans('plugins/vig-auto-translations::vig-auto-translations.description') }}</p>
+        </div>
+    </div>
+
+    <div class="flexbox-annotated-section-content">
+        <div class="wrapper-content pd-all-20">
+            <div class="form-group mb-3">
+                <label class="text-title-field" for="vig_translate_driver">{{ trans('plugins/vig-auto-translations::vig-auto-translations.setting_driver') }}</label>
+
+                <label class="me-2">
+                    <input type="radio"
+                           name="vig_translate_driver"
+                           value="google"
+                           @if (setting('vig_translate_driver') == 'google' || empty(setting('vig_translate_driver'))) checked @endif
+                           class="setting-selection-option">{{ trans('plugins/vig-auto-translations::vig-auto-translations.goolge') }}
+                </label>
+                <label>
+                    <input type="radio"
+                           name="vig_translate_driver"
+                           value="aws"
+                           @if (setting('vig_translate_driver') == 'aws') checked @endif
+                           class="setting-selection-option">{{ trans('plugins/vig-auto-translations::vig-auto-translations.aws') }}
+                </label>
+            </div>
+
+            <div class="mb-4 border rounded-top rounded-bottom p-3 bg-light">
+
+                <div class="form-group mb-3">
+                    <label class="text-title-field" for="vig_translate_aws_key">{{ trans('plugins/vig-auto-translations::vig-auto-translations.aws_key') }}</label>
+                    <input data-counter="120"
+                           type="text"
+                           class="next-input"
+                           name="vig_translate_aws_key"
+                           id="vig_translate_aws_key"
+                           value="{{ setting('vig_translate_aws_key', config('plugins.vig-auto-translations.general.aws_key')) }}" placeholder="{{ trans('plugins/vig-auto-translations::vig-auto-translations.aws_key') }}">
+                </div>
+
+                <div class="form-group mb-3">
+                    <label class="text-title-field" for="vig_translate_aws_secret">{{ trans('plugins/vig-auto-translations::vig-auto-translations.aws_secret') }}</label>
+                    <input data-counter="120"
+                           type="text"
+                           class="next-input"
+                           name="vig_translate_aws_secret"
+                           id="vig_translate_aws_secret"
+                           value="{{ setting('vig_translate_aws_secret', config('plugins.vig-auto-translations.general.aws_secret')) }}" placeholder="{{ trans('plugins/vig-auto-translations::vig-auto-translations.aws_secret') }}">
+                </div>
+
+                <div class="form-group mb-3">
+                    <label class="text-title-field" for="vig_translate_aws_region">{{ trans('plugins/vig-auto-translations::vig-auto-translations.aws_region') }}</label>
+                    <input data-counter="120"
+                           type="text"
+                           class="next-input"
+                           name="vig_translate_aws_region"
+                           id="vig_translate_aws_region"
+                           value="{{ setting('vig_translate_aws_region', config('plugins.vig-auto-translations.general.aws_region')) }}" placeholder="{{ trans('plugins/vig-auto-translations::vig-auto-translations.aws_region') }}">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
