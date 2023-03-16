@@ -11,7 +11,9 @@ return [
     'setting_driver' => 'Driver to translate',
     'google' => 'Google Translate',
     'aws' => 'Amazon Translate',
+    'chatgpt' => 'ChatGPT Translate',
     'aws_key' => 'AWS Key',
     'aws_secret' => 'AWS Secret',
     'aws_region' => 'AWS Region',
+    'chatgpt_key' => 'ChatGPT API Key',
 ];

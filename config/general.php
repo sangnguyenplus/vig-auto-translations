@@ -6,4 +6,5 @@ return [
     'aws_region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     'version' => 'latest',
     'log_error' => true,
+    'chatgpt_key' => env('OPENAI_API_KEY', ''),
 ];
