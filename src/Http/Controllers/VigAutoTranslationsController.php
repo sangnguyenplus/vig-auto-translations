@@ -36,16 +36,16 @@ class VigAutoTranslationsController extends BaseController
         );
     }
 
-    public function getDataTranslations(string|null $ref_lang): array
+    public function getDataTranslations(string|null $refLang): array
     {
         $groups = Language::getAvailableLocales();
         $defaultLanguage = Arr::get($groups, 'en');
 
-        if (! $ref_lang) {
+        if (! $refLang) {
             $group = $defaultLanguage;
         } else {
-            $group = Arr::first(Arr::where($groups, function ($item) use ($ref_lang) {
-                return $item['locale'] == $ref_lang;
+            $group = Arr::first(Arr::where($groups, function ($item) use ($refLang) {
+                return $item['locale'] == $refLang;
             }));
         }
 
@@ -160,7 +160,7 @@ class VigAutoTranslationsController extends BaseController
             $translations[$key] = $value;
         }
 
-        File::put(lang_path($locale . '.json'), json_encode($translations, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        File::put(lang_path($locale . '.json'), BaseHelper::jsonEncodePrettify($translations));
     }
 
     public function postThemeAllTranslations(Request $request, BaseHttpResponse $response)

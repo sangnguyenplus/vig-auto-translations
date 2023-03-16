@@ -1,22 +1,27 @@
 <?php
 
-Route::group(['namespace' => 'VigStudio\VigAutoTranslations\Http\Controllers', 'middleware' => ['web', 'core']], function () {
-    Route::group(['prefix' => BaseHelper::getAdminPrefix(), 'middleware' => 'auth'], function () {
-        Route::group(['prefix' => 'vig-auto-translations', 'permission' => 'vig-auto-translations.index', ], function () {
-            Route::get('theme', [
-                'as' => 'vig-auto-translations.theme',
-                'uses' => 'VigAutoTranslationsController@getThemeTranslations',
-            ]);
+use VigStudio\VigAutoTranslations\Http\Controllers\VigAutoTranslationsController;
 
-            Route::post('theme', [
-                'as' => 'vig-auto-translations.theme.post',
-                'uses' => 'VigAutoTranslationsController@postThemeTranslations',
-            ]);
+Route::group(['controller' => VigAutoTranslationsController::class, 'middleware' => ['web', 'core']], function () {
+    Route::group([
+        'prefix' => BaseHelper::getAdminPrefix() . '/vig-auto-translations',
+        'middleware' => 'auth',
+        'permission' => 'vig-auto-translations.index',
+        'as' => 'vig-auto-translations.',
+    ], function () {
+        Route::get('theme', [
+            'as' => 'theme',
+            'uses' => 'getThemeTranslations',
+        ]);
 
-            Route::post('theme-all', [
-                'as' => 'vig-auto-translations.theme.post-all',
-                'uses' => 'VigAutoTranslationsController@postThemeAllTranslations',
-            ]);
-        });
+        Route::post('theme', [
+            'as' => 'theme.post',
+            'uses' => 'postThemeTranslations',
+        ]);
+
+        Route::post('theme-all', [
+            'as' => 'theme.post-all',
+            'uses' => 'postThemeAllTranslations',
+        ]);
     });
 });

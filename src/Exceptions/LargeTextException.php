@@ -1,4 +1,3 @@
-
 <?php
 
 namespace VigStudio\VigAutoTranslations\Exceptions;

@@ -28,7 +28,7 @@ class VigAutoTranslationsServiceProvider extends ServiceProvider
             $this->app->register(HookServiceProvider::class);
         });
 
-        Event::listen(RouteMatched::class, function () {
+        $this->app['events']->listen(RouteMatched::class, function () {
             dashboard_menu()->registerItem([
                 'id' => 'cms-plugins-vig-auto-translations',
                 'priority' => 5,

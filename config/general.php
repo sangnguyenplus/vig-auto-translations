@@ -5,4 +5,5 @@ return [
     'aws_secret' => env('AWS_SECRET_ACCESS_KEY', ''),
     'aws_region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     'version' => 'latest',
+    'log_error' => true,
 ];
