@@ -5,6 +5,7 @@ return [
     'description' => 'Auto Translations Theme and Plugin for Botble CMS, using Google or Amazon Translate',
     'not_eng' => 'Please select a language to translate',
     'name_theme' => 'Theme auto translations',
+    'name_plugin' => 'Other auto translations',
     'translate' => 'Auto Translate',
     'reset' => 'Reset',
     'translate_all' => 'Translate all texts to :language',

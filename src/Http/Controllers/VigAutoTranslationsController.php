@@ -5,15 +5,23 @@ namespace VigStudio\VigAutoTranslations\Http\Controllers;
 use Assets;
 use BaseHelper;
 use Theme;
+use Botble\Base\Supports\Language;
 use Botble\Base\Http\Controllers\BaseController;
 use Botble\Base\Http\Responses\BaseHttpResponse;
-use Botble\Base\Supports\Language;
+use Botble\Translation\Manager;
+use Botble\Translation\Models\Translation;
+use Botble\Translation\Http\Requests\TranslationRequest;
+use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
-use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class VigAutoTranslationsController extends BaseController
 {
+    public function __construct(protected Manager $manager)
+    {
+    }
+
     public function getThemeTranslations(Request $request)
     {
         page_title()->setTitle(trans('plugins/vig-auto-translations::vig-auto-translations.title'));
@@ -178,5 +186,90 @@ class VigAutoTranslationsController extends BaseController
         return $response
         ->setPreviousUrl(route('vig-auto-translations.theme'))
         ->setMessage(trans('core/base::notices.update_success_message'));
+    }
+
+    //Plugin
+    public function getPluginsTranslations(Request $request)
+    {
+        page_title()->setTitle(trans('plugins/translation::translation.translations'));
+
+        Assets::addScripts(['bootstrap-editable'])
+            ->addStyles(['bootstrap-editable'])
+            ->addStylesDirectly('vendor/core/plugins/translation/css/translation.css');
+
+        $group = $request->input('group');
+
+        $locales = $this->loadLocales();
+        $groups = Translation::groupBy('group');
+        $excludedGroups = $this->manager->getConfig('exclude_groups');
+        if ($excludedGroups) {
+            $groups->whereNotIn('group', $excludedGroups);
+        }
+
+        $groups = $groups->select('group')->get()->pluck('group', 'group');
+        if ($groups instanceof Collection) {
+            $groups = $groups->all();
+        }
+        $groups = ['' => trans('plugins/translation::translation.choose_a_group')] + $groups;
+        $numChanged = Translation::where('group', $group)->where('status', Translation::STATUS_CHANGED)->count();
+
+        $allTranslations = Translation::where('group', $group)->orderBy('key')->get();
+        $numTranslations = count($allTranslations);
+        $translations = [];
+        foreach ($allTranslations as $translation) {
+            $translations[$translation->key][$translation->locale] = $translation;
+        }
+
+        return view('plugins/vig-auto-translations::plugin-translations')
+            ->with('translations', $translations)
+            ->with('locales', $locales)
+            ->with('groups', $groups)
+            ->with('group', $group)
+            ->with('numTranslations', $numTranslations)
+            ->with('numChanged', $numChanged)
+            ->with('editUrl', route('translations.group.edit', ['group' => $group]));
+    }
+
+    public function postPluginsTranslations(TranslationRequest $request, BaseHttpResponse $response)
+    {
+        $group = $request->input('group');
+
+        if (! in_array($group, $this->manager->getConfig('exclude_groups'))) {
+            $name = $request->input('name');
+            $value = $request->input('value');
+
+            [$locale, $key] = explode('|', $name, 2);
+
+            if ($request->input('auto') == 'true') {
+                $value = vig_auto_translate('en', $locale, $value);
+            }
+
+            $translation = Translation::firstOrNew([
+                'locale' => $locale,
+                'group' => $group,
+                'key' => $key,
+            ]);
+            $translation->value = (string)$value ?: null;
+            $translation->status = Translation::STATUS_CHANGED;
+            $translation->save();
+        }
+
+        return $response;
+    }
+
+    protected function loadLocales(): array
+    {
+        // Set the default locale as the first one.
+        $locales = Translation::groupBy('locale')
+            ->select('locale')
+            ->get()
+            ->pluck('locale');
+
+        if ($locales instanceof Collection) {
+            $locales = $locales->all();
+        }
+        $locales = array_merge([config('app.locale')], $locales);
+
+        return array_unique($locales);
     }
 }

@@ -9,19 +9,33 @@ Route::group(['controller' => VigAutoTranslationsController::class, 'middleware'
         'permission' => 'vig-auto-translations.index',
         'as' => 'vig-auto-translations.',
     ], function () {
-        Route::get('theme', [
-            'as' => 'theme',
-            'uses' => 'getThemeTranslations',
-        ]);
+        Route::group(['prefix' => 'theme'], function () {
+            Route::get('/', [
+                'as' => 'theme',
+                'uses' => 'getThemeTranslations',
+            ]);
 
-        Route::post('theme', [
-            'as' => 'theme.post',
-            'uses' => 'postThemeTranslations',
-        ]);
+            Route::post('/', [
+                'as' => 'theme.post',
+                'uses' => 'postThemeTranslations',
+            ]);
 
-        Route::post('theme-all', [
-            'as' => 'theme.post-all',
-            'uses' => 'postThemeAllTranslations',
-        ]);
+            Route::post('all', [
+                'as' => 'theme.post-all',
+                'uses' => 'postThemeAllTranslations',
+            ]);
+        });
+
+        Route::group(['prefix' => 'plugin'], function () {
+            Route::get('', [
+                'as' => 'plugin',
+                'uses' => 'getPluginsTranslations',
+            ]);
+
+            Route::post('', [
+                'as' => 'plugin.post',
+                'uses' => 'postPluginsTranslations',
+            ]);
+        });
     });
 });

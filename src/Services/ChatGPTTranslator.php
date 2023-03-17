@@ -28,8 +28,8 @@ class ChatGPTTranslator
             ],
             'json' => [
                 'model' => 'text-davinci-003',
-                'prompt' => 'Translate "' . $line . '" to ' . $to . ' from ' . $from,
-                'max_tokens' => 300,
+                'prompt' => 'translations "' . $line . '" to ' . $to . ' from ' . $from,
+                'max_tokens' => 1000,
             ],
         ]);
 
