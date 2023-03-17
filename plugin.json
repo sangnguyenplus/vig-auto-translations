@@ -6,5 +6,8 @@
     "author": "Nghĩa Nè",
     "url": "https://nghiane.com",
     "version": "0.0.1",
-    "description": "Auto Translations Theme and Plugin for Botble CMS, using Google or Amazon Translate"
+    "description": "Auto Translations Theme and Plugin for Botble CMS, using Google or Amazon Translate",
+    "required_plugins": [
+        "translation"
+    ]
 }
