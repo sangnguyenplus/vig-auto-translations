@@ -37,15 +37,15 @@ class VigAutoTranslationsServiceProvider extends ServiceProvider
                 'url' => route('vig-auto-translations.theme'),
                 'permissions' => ['vig-auto-translations.index'],
             ]);
-            // dashboard_menu()->registerItem([
-            //     'id' => 'cms-plugins-vig-auto-translations-plugin',
-            //     'priority' => 81,
-            //     'parent_id' => 'cms-plugin-translation',
-            //     'name' => 'plugins/vig-auto-translations::vig-auto-translations.name_plugin',
-            //     'icon' => null,
-            //     'url' => route('vig-auto-translations.plugin'),
-            //     'permissions' => ['vig-auto-translations.index'],
-            // ]);
+            dashboard_menu()->registerItem([
+                'id' => 'cms-plugins-vig-auto-translations-plugin',
+                'priority' => 81,
+                'parent_id' => 'cms-plugin-translation',
+                'name' => 'plugins/vig-auto-translations::vig-auto-translations.name_plugin',
+                'icon' => null,
+                'url' => route('vig-auto-translations.plugin'),
+                'permissions' => ['vig-auto-translations.index'],
+            ]);
         });
     }
 }

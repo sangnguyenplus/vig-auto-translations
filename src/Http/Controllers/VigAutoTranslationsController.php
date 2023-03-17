@@ -199,7 +199,8 @@ class VigAutoTranslationsController extends BaseController
 
         $group = $request->input('group');
 
-        $locales = $this->loadLocales();
+        $locales = $this->loadLocales($request->has('ref_lang') ? $request->input('ref_lang') : 'en');
+        $localesAll = $this->loadLocales(null);
         $groups = Translation::groupBy('group');
         $excludedGroups = $this->manager->getConfig('exclude_groups');
         if ($excludedGroups) {
@@ -223,11 +224,28 @@ class VigAutoTranslationsController extends BaseController
         return view('plugins/vig-auto-translations::plugin-translations')
             ->with('translations', $translations)
             ->with('locales', $locales)
+            ->with('localesAll', $localesAll)
             ->with('groups', $groups)
             ->with('group', $group)
             ->with('numTranslations', $numTranslations)
             ->with('numChanged', $numChanged)
             ->with('editUrl', route('translations.group.edit', ['group' => $group]));
+    }
+
+    public function postAllPluginsTranslations(Request $request, BaseHttpResponse $response)
+    {
+        $group = $request->input('group');
+        $locale = $request->input('ref_lang');
+
+        $allTranslations = Translation::where('group', $group)->where('locale', 'en')->get();
+
+        foreach ($allTranslations as $translate) {
+            $value = Translation::where('key', $translate->key)->where('group', $translate->group)->where('locale', 'en')->first()?->value ?? '';
+            $value = vig_auto_translate('en', $locale, $value);
+            $this->firstOrNewTranslation($locale, $group, $translate->key, $value);
+        }
+
+        return $response;
     }
 
     public function postPluginsTranslations(TranslationRequest $request, BaseHttpResponse $response)
@@ -244,24 +262,32 @@ class VigAutoTranslationsController extends BaseController
                 $value = vig_auto_translate('en', $locale, $value);
             }
 
-            $translation = Translation::firstOrNew([
-                'locale' => $locale,
-                'group' => $group,
-                'key' => $key,
-            ]);
-            $translation->value = (string)$value ?: null;
-            $translation->status = Translation::STATUS_CHANGED;
-            $translation->save();
+            $this->firstOrNewTranslation($locale, $group, $key, $value);
         }
 
         return $response;
     }
 
-    protected function loadLocales(): array
+    public function firstOrNewTranslation(string $locale, string $group, string $key, string $value): void
+    {
+        $translation = Translation::firstOrNew([
+            'locale' => $locale,
+            'group' => $group,
+            'key' => $key,
+        ]);
+        $translation->value = (string)$value ?: null;
+        $translation->status = Translation::STATUS_CHANGED;
+        $translation->save();
+    }
+
+    protected function loadLocales(string|null $lang): array
     {
         // Set the default locale as the first one.
         $locales = Translation::groupBy('locale')
             ->select('locale')
+            ->when($lang, function ($query) use ($lang) {
+                $query->whereIn('locale', ['en', $lang]);
+            })
             ->get()
             ->pluck('locale');
 

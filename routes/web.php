@@ -36,6 +36,11 @@ Route::group(['controller' => VigAutoTranslationsController::class, 'middleware'
                 'as' => 'plugin.post',
                 'uses' => 'postPluginsTranslations',
             ]);
+
+            Route::post('all', [
+                'as' => 'plugin.all',
+                'uses' => 'postAllPluginsTranslations',
+            ]);
         });
     });
 });
