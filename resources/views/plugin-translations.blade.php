@@ -50,10 +50,10 @@
                     <table class="table">
                         <thead>
                             <tr>
-                                <th>Key</th>
-                                <th>Value</th>
+                                <th>{{ trans('plugins/vig-auto-translations::vig-auto-translations.key') }}</th>
+                                <th>{{ trans('plugins/vig-auto-translations::vig-auto-translations.value') }}</th>
                                 @if (!empty($ref_lang))
-                                    <th>{{ $ref_lang }}</th>
+                                    <th>{{ $locales[$ref_lang]['name'] }}</th>
                                     <th></th>
                                 @endif
                             </tr>

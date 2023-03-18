@@ -11,6 +11,8 @@ return [
     'translate_all' => 'Translate all texts to :language',
     'group' => 'Group Translation',
     'lang' => 'To Language',
+    'key' => 'Key',
+    'value' => 'Value',
     'setting_driver' => 'Driver to translate',
     'google' => 'Google Translate',
     'aws' => 'Amazon Translate',
