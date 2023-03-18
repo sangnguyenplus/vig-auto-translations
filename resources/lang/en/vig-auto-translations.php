@@ -9,6 +9,8 @@ return [
     'translate' => 'Auto Translate',
     'reset' => 'Reset',
     'translate_all' => 'Translate all texts to :language',
+    'group' => 'Group Translation',
+    'lang' => 'To Language',
     'setting_driver' => 'Driver to translate',
     'google' => 'Google Translate',
     'aws' => 'Amazon Translate',

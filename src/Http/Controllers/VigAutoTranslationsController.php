@@ -14,7 +14,6 @@ use Botble\Translation\Http\Requests\TranslationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Collection;
 
 class VigAutoTranslationsController extends BaseController
 {
@@ -201,7 +200,8 @@ class VigAutoTranslationsController extends BaseController
         $ref_lang = $request->input('ref_lang');
 
         $translations = $this->getLang();
-        $locales = $this->loadLocales();
+
+        $locales =  Language::getAvailableLocales();
 
         $allTranslations = Translation::where('group', $group)->where('locale', $ref_lang)->orderBy('key')->get();
         $translationData = [];
@@ -216,22 +216,6 @@ class VigAutoTranslationsController extends BaseController
                 ->with('group', $group)
                 ->with('ref_lang', $ref_lang)
                 ->with('editUrl', route('translations.group.edit', ['group' => $group]));
-    }
-
-    protected function loadLocales(): array
-    {
-        // Set the default locale as the first one.
-        $locales = Translation::groupBy('locale')
-            ->select('locale')
-            ->get()
-            ->pluck('locale');
-
-        if ($locales instanceof Collection) {
-            $locales = $locales->all();
-        }
-        $locales = array_merge([config('app.locale')], $locales);
-
-        return array_unique($locales);
     }
 
     public function getLang(): array
