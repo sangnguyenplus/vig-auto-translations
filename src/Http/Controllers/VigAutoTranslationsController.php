@@ -198,38 +198,89 @@ class VigAutoTranslationsController extends BaseController
             ->addStylesDirectly('vendor/core/plugins/translation/css/translation.css');
 
         $group = $request->input('group');
+        $ref_lang = $request->input('ref_lang');
 
-        $locales = $this->loadLocales($request->has('ref_lang') ? $request->input('ref_lang') : 'en');
-        $localesAll = $this->loadLocales(null);
-        $groups = Translation::groupBy('group');
-        $excludedGroups = $this->manager->getConfig('exclude_groups');
-        if ($excludedGroups) {
-            $groups->whereNotIn('group', $excludedGroups);
-        }
+        $translations = $this->getLang();
+        $locales = $this->loadLocales();
 
-        $groups = $groups->select('group')->get()->pluck('group', 'group');
-        if ($groups instanceof Collection) {
-            $groups = $groups->all();
-        }
-        $groups = ['' => trans('plugins/translation::translation.choose_a_group')] + $groups;
-        $numChanged = Translation::where('group', $group)->where('status', Translation::STATUS_CHANGED)->count();
-
-        $allTranslations = Translation::where('group', $group)->orderBy('key')->get();
-        $numTranslations = count($allTranslations);
-        $translations = [];
+        $allTranslations = Translation::where('group', $group)->where('locale', $ref_lang)->orderBy('key')->get();
+        $translationData = [];
         foreach ($allTranslations as $translation) {
-            $translations[$translation->key][$translation->locale] = $translation;
+            $translationData[$translation->key] = $translation;
         }
 
         return view('plugins/vig-auto-translations::plugin-translations')
-            ->with('translations', $translations)
-            ->with('locales', $locales)
-            ->with('localesAll', $localesAll)
-            ->with('groups', $groups)
-            ->with('group', $group)
-            ->with('numTranslations', $numTranslations)
-            ->with('numChanged', $numChanged)
-            ->with('editUrl', route('translations.group.edit', ['group' => $group]));
+                ->with('translations', $translations)
+                ->with('translationData', $translationData)
+                ->with('locales', $locales)
+                ->with('group', $group)
+                ->with('ref_lang', $ref_lang)
+                ->with('editUrl', route('translations.group.edit', ['group' => $group]));
+    }
+
+    protected function loadLocales(): array
+    {
+        // Set the default locale as the first one.
+        $locales = Translation::groupBy('locale')
+            ->select('locale')
+            ->get()
+            ->pluck('locale');
+
+        if ($locales instanceof Collection) {
+            $locales = $locales->all();
+        }
+        $locales = array_merge([config('app.locale')], $locales);
+
+        return array_unique($locales);
+    }
+
+    public function getLang(): array
+    {
+        $basePath = base_path();
+        $arrayPathGet = [
+            'core' => $basePath . '/platform/core',
+            'packages' => $basePath . '/platform/packages',
+            'plugins' => $basePath . '/platform/plugins',
+        ];
+
+        $langArray = [];
+
+        foreach ($arrayPathGet as $key => $vendorPath) {
+            if (is_dir($vendorPath)) {
+                $packages = File::directories($vendorPath);
+                foreach ($packages as $package) {
+                    $packageName = basename($package);
+                    $packagePath = $vendorPath . '/' . $packageName;
+
+                    $langPath = $packagePath . '/resources/lang';
+                    if (! is_dir($langPath)) {
+                        continue;
+                    }
+
+                    $files = File::allFiles($langPath);
+                    foreach ($files as $file) {
+                        $info = pathinfo($file);
+                        $group = $info['filename'];
+                        $subLangPath = str_replace($langPath . DIRECTORY_SEPARATOR, '', $info['dirname']);
+                        $subLangPath = str_replace(DIRECTORY_SEPARATOR, '/', $subLangPath);
+
+                        if ($subLangPath != $langPath) {
+                            $group = substr($subLangPath, 0, -3) . '/' . $group;
+                        }
+                        $filePath = $key . '/' . $packageName . $group;
+
+                        if (! is_readable($file->getPathname())) {
+                            continue;
+                        }
+
+                        $translations = require $file->getPathname();
+                        $langArray[$filePath]  = Arr::dot($translations);
+                    }
+                }
+            }
+        }
+
+        return $langArray;
     }
 
     public function postAllPluginsTranslations(Request $request, BaseHttpResponse $response)
@@ -237,12 +288,11 @@ class VigAutoTranslationsController extends BaseController
         $group = $request->input('group');
         $locale = $request->input('ref_lang');
 
-        $allTranslations = Translation::where('group', $group)->where('locale', 'en')->get();
+        $allTranslations = $translations = $this->getLang()[$group];
 
-        foreach ($allTranslations as $translate) {
-            $value = Translation::where('key', $translate->key)->where('group', $translate->group)->where('locale', 'en')->first()?->value ?? '';
+        foreach ($allTranslations as $key => $value) {
             $value = vig_auto_translate('en', $locale, $value);
-            $this->firstOrNewTranslation($locale, $group, $translate->key, $value);
+            $this->firstOrNewTranslation($locale, $group, $key, $value);
         }
 
         return $response;
@@ -278,24 +328,5 @@ class VigAutoTranslationsController extends BaseController
         $translation->value = (string)$value ?: null;
         $translation->status = Translation::STATUS_CHANGED;
         $translation->save();
-    }
-
-    protected function loadLocales(string|null $lang): array
-    {
-        // Set the default locale as the first one.
-        $locales = Translation::groupBy('locale')
-            ->select('locale')
-            ->when($lang, function ($query) use ($lang) {
-                $query->whereIn('locale', ['en', $lang]);
-            })
-            ->get()
-            ->pluck('locale');
-
-        if ($locales instanceof Collection) {
-            $locales = $locales->all();
-        }
-        $locales = array_merge([config('app.locale')], $locales);
-
-        return array_unique($locales);
     }
 }

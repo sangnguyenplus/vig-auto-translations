@@ -7,13 +7,11 @@
         <div class="widget-body box-translation" v-pre>
             {!! Form::open(['role' => 'form']) !!}
             <div class="row">
-
-
                 <div class="form-group col-md-6">
                     <label>GROUP</label>
                     <select name="group" id="group" data-value="group" class="form-control ui-select group-select select-search-full">
-                        @foreach ($groups as $key => $value)
-                            <option value="{{ $key }}"{{ $key == $group ? ' selected' : '' }}>{{ $value }}</option>
+                        @foreach ($translations as $key => $value)
+                            <option value="{{ $key }}"{{ $key == $group ? ' selected' : '' }}>{{ $key }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -21,8 +19,8 @@
                 <div class="form-group col-md-6">
                     <label>lang</label>
                     <select name="ref_lang" id="ref_lang" data-value="ref_lang" class="form-control ui-select group-select select-search-full">
-                        @foreach ($localesAll as $key => $value)
-                            <option value="{{ $value }}"{{ $value == request('ref_lang') ? ' selected' : '' }}>{{ $value }}</option>
+                        @foreach ($locales as $key => $value)
+                            <option value="{{ $value }}"{{ $value == $ref_lang ? ' selected' : '' }}>{{ $value }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -30,64 +28,52 @@
             <br>
             {!! Form::close() !!}
 
-            @if (!empty($group))
-
-                <button class="btn btn-warning btn-xs btn-translate-all">
-                    <i class="fa-sharp fa-solid fa-language"></i> Begin Translate All Text
-                </button>
-
-                <form method="POST" action="{{ route('translations.group.publish', compact('group')) }}" class="form-inline" role="form">
-                    @csrf
-                    <button type="submit" class="btn btn-info button-publish-groups">{{ trans('plugins/translation::translation.publish_translations') }}</button>
-                </form>
-
-                <hr>
-                <div class="table-responsive">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Key</th>
-                                @foreach ($locales as $locale)
-                                    <th>{{ $locale }}</th>
-                                    <th></th>
-                                @endforeach
-
+            <button class="btn btn-warning btn-xs btn-translate-all">
+                <i class="fa-sharp fa-solid fa-language"></i> Begin Translate All Text
+            </button>
+            <form method="POST" action="{{ route('translations.group.publish', compact('group')) }}" class="form-inline" role="form">
+                @csrf
+                <button type="submit" class="btn btn-info button-publish-groups">{{ trans('plugins/translation::translation.publish_translations') }}</button>
+            </form>
+            <hr>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Key</th>
+                            <th>Value</th>
+                            <th>{{ $ref_lang }}</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($translations[$group] as $key => $value)
+                            @php $item = $translationData[$key] ?? null @endphp
+                            <tr id="{{ $key }}">
+                                <td>{{ $key }}</td>
+                                <td>{{ $value }}</td>
+                                <td class="text-start">
+                                    <a href="#edit" class="editable status-{{ $item ? $item->status : 0 }} locale-{{ $ref_lang }}"
+                                       data-locale="{{ $ref_lang }}" data-name="{{ $ref_lang . '|' . $key }}"
+                                       data-type="textarea" data-pk="{{ $item ? $item->id : 0 }}" data-url="{{ $editUrl }}"
+                                       data-title="{{ trans('plugins/translation::translation.edit_title') }}">{!! $item ? htmlentities($item->value, ENT_QUOTES, 'UTF-8', false) : '' !!}</a>
+                                </td>
+                                <td>
+                                    <button class="btn btn-primary btn-xs btn-begin-translate-auto"
+                                            data-name="{{ $ref_lang . '|' . $key }}"
+                                            data-value="{{ $value }}"
+                                            data-reset="0"
+                                            type="button"
+                                            title="{{ trans('plugins/vig-auto-translations::vig-auto-translations.translate') }}">
+                                        <i class="fa-sharp fa-solid fa-language"></i> {{ trans('plugins/vig-auto-translations::vig-auto-translations.translate') }}
+                                    </button>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($translations as $key => $translation)
-                                <tr id="{{ $key }}">
-                                    <td>{{ $key }}</td>
-                                    @foreach ($locales as $locale)
-                                        @php $item = $translation[$locale] ?? null @endphp
-                                        <td class="text-start">
-                                            <br />
-                                            <a href="#edit" class="editable status-{{ $item ? $item->status : 0 }} locale-{{ $locale }}"
-                                               data-locale="{{ $locale }}" data-name="{{ $locale . '|' . $key }}"
-                                               data-type="textarea" data-pk="{{ $item ? $item->id : 0 }}" data-url="{{ $editUrl }}"
-                                               data-title="{{ trans('plugins/translation::translation.edit_title') }}">{!! $item ? htmlentities($item->value, ENT_QUOTES, 'UTF-8', false) : '' !!}</a>
-                                        </td>
-                                        <td>
-                                            @if ($locale !== 'en')
-                                                <button class="btn btn-primary btn-xs btn-begin-translate-auto"
-                                                        data-name="{{ $locale . '|' . $key }}"
-                                                        data-value="{{ !empty($translation['en']) ? $translation['en']->value : '' }}"
-                                                        data-reset="0"
-                                                        type="button"
-                                                        title="{{ trans('plugins/vig-auto-translations::vig-auto-translations.translate') }}">
-                                                    <i class="fa-sharp fa-solid fa-language"></i> {{ trans('plugins/vig-auto-translations::vig-auto-translations.translate') }}
-                                                </button>
-                                            @endif
-                                        </td>
-                                    @endforeach
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            @else
-                <p class="text-info">{{ trans('plugins/translation::translation.choose_group_msg') }}</p>
-            @endif
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
         </div>
         <div class="clearfix"></div>
     </div>
@@ -110,19 +96,6 @@
                 }, 300);
             }
         });
-
-        $('.group-select').on('change', event => {
-            let group = $('#group').val();
-            let ref_lang = $('#ref_lang').val();
-            window.location.href = getRouteGetData(group, ref_lang);
-        });
-
-        function getRouteGetData(group, ref_lang) {
-            return route('vig-auto-translations.plugin', {
-                group: group,
-                ref_lang: ref_lang
-            })
-        }
 
         $(document).on('click', '.btn-begin-translate-auto', function(event) {
             event.preventDefault();
@@ -186,5 +159,18 @@
                 }
             });
         });
+
+        $('.group-select').on('change', event => {
+            let group = $('#group').val();
+            let ref_lang = $('#ref_lang').val();
+            window.location.href = getRouteGetData(group, ref_lang);
+        });
+
+        function getRouteGetData(group, ref_lang) {
+            return route('vig-auto-translations.plugin', {
+                group: group,
+                ref_lang: ref_lang
+            })
+        }
     </script>
 @endpush
