@@ -21,4 +21,5 @@ return [
     'aws_secret' => 'AWS Secret',
     'aws_region' => 'AWS Region',
     'chatgpt_key' => 'ChatGPT API Key',
+    'actions' => 'Actions',
 ];
