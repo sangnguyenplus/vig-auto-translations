@@ -313,4 +313,17 @@ class VigAutoTranslationsController extends BaseController
         $translation->status = Translation::STATUS_CHANGED;
         $translation->save();
     }
+
+    public function getAutoTranslate(Request $request, BaseHttpResponse $response)
+    {
+        if (($locale = $request->input('locale')) &&
+            ($name = $request->input('name')) &&
+            in_array($locale, array_keys(Language::getAvailableLocales()))) {
+            $value = vig_auto_translate('en', $locale, $name);
+
+            return $response->setData([$locale => $value]);
+        }
+
+        return $response->setCode(404)->setError();
+    }
 }

@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
 use VigStudio\VigAutoTranslations\Http\Controllers\VigAutoTranslationsController;
 
 Route::group(['controller' => VigAutoTranslationsController::class, 'middleware' => ['web', 'core']], function () {
@@ -42,5 +43,10 @@ Route::group(['controller' => VigAutoTranslationsController::class, 'middleware'
                 'uses' => 'postAllPluginsTranslations',
             ]);
         });
+
+        Route::get('auto-translate', [
+            'as' => 'auto-translate',
+            'uses' => 'getAutoTranslate',
+        ]);
     });
 });
