@@ -177,7 +177,9 @@ class VigAutoTranslationsController extends BaseController
         $translations = $data['translations'];
 
         foreach ($translations as $key => $translation) {
-            $translations[$key] =  vig_auto_translate('en', $locale, $key);
+            if ($key == $translation) {
+                $translations[$key] =  vig_auto_translate('en', $locale, $key);
+            }
         }
 
         $this->saveTranslations($locale, $translations);
