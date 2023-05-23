@@ -4,7 +4,7 @@
         <div class="widget-title">
             <h4>&nbsp; {{ trans('plugins/translation::translation.translations') }}</h4>
         </div>
-        <div class="widget-body box-translation" v-pre>
+        <div class="widget-body box-translation">
             {!! Form::open(['role' => 'form']) !!}
             <div class="row">
                 <div class="form-group col-md-6">
@@ -176,7 +176,7 @@
             });
         });
 
-        $('.group-select').on('change', event => {
+        $('.group-select').on('change', () => {
             let group = $('#group').val();
             let ref_lang = $('#ref_lang').val();
             window.location.href = getRouteGetData(group, ref_lang);
