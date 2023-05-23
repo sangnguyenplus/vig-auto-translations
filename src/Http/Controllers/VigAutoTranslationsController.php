@@ -17,10 +17,6 @@ use Illuminate\Support\Facades\File;
 
 class VigAutoTranslationsController extends BaseController
 {
-    public function __construct(protected Manager $manager)
-    {
-    }
-
     public function getThemeTranslations(Request $request)
     {
         page_title()->setTitle(trans('plugins/vig-auto-translations::vig-auto-translations.title'));
@@ -51,9 +47,11 @@ class VigAutoTranslationsController extends BaseController
         if (! $refLang) {
             $group = $defaultLanguage;
         } else {
-            $group = Arr::first(Arr::where($groups, function ($item) use ($refLang) {
-                return $item['locale'] == $refLang;
-            }));
+            $group = Arr::first(
+                Arr::where($groups, function ($item) use ($refLang) {
+                    return $item['locale'] == $refLang;
+                })
+            );
         }
 
         $translations = [];
@@ -109,7 +107,9 @@ class VigAutoTranslationsController extends BaseController
         if (! File::isWritable(lang_path())) {
             return $response
                 ->setError()
-                ->setMessage(trans('plugins/translation::translation.folder_is_not_writeable', ['lang_path' => lang_path()]));
+                ->setMessage(
+                    trans('plugins/translation::translation.folder_is_not_writeable', ['lang_path' => lang_path()])
+                );
         }
 
         $locale = $request->input('pk');
@@ -119,13 +119,14 @@ class VigAutoTranslationsController extends BaseController
         if ($request->input('auto') == 'true') {
             $value = vig_auto_translate('en', $locale, $name);
         }
+
         if ($locale) {
             $this->saveTranslations($locale, [$name => $value]);
         }
 
         return $response
-        ->setPreviousUrl(route('vig-auto-translations.theme'))
-        ->setMessage(trans('core/base::notices.update_success_message'));
+            ->setPreviousUrl(route('vig-auto-translations.theme'))
+            ->setMessage(trans('core/base::notices.update_success_message'));
     }
 
     public function saveTranslations(string $locale, array $newTranslations): void
@@ -176,20 +177,21 @@ class VigAutoTranslationsController extends BaseController
         $data = $this->getDataTranslations($locale);
         $translations = $data['translations'];
 
+        BaseHelper::maximumExecutionTimeAndMemoryLimit();
+
         foreach ($translations as $key => $translation) {
             if ($key == $translation) {
-                $translations[$key] =  vig_auto_translate('en', $locale, $key);
+                $translations[$key] = vig_auto_translate('en', $locale, $key);
             }
         }
 
         $this->saveTranslations($locale, $translations);
 
         return $response
-        ->setPreviousUrl(route('vig-auto-translations.theme'))
-        ->setMessage(trans('core/base::notices.update_success_message'));
+            ->setPreviousUrl(route('vig-auto-translations.theme'))
+            ->setMessage(trans('core/base::notices.update_success_message'));
     }
 
-    //Plugin
     public function getPluginsTranslations(Request $request)
     {
         page_title()->setTitle(trans('plugins/translation::translation.translations'));
@@ -203,7 +205,7 @@ class VigAutoTranslationsController extends BaseController
 
         $translations = $this->getLang();
 
-        $locales =  Language::getAvailableLocales();
+        $locales = Language::getAvailableLocales();
 
         $allTranslations = Translation::where('group', $group)->where('locale', $ref_lang)->orderBy('key')->get();
         $translationData = [];
@@ -212,12 +214,12 @@ class VigAutoTranslationsController extends BaseController
         }
 
         return view('plugins/vig-auto-translations::plugin-translations')
-                ->with('translations', $translations)
-                ->with('translationData', $translationData)
-                ->with('locales', $locales)
-                ->with('group', $group)
-                ->with('ref_lang', $ref_lang)
-                ->with('editUrl', route('translations.group.edit', ['group' => $group]));
+            ->with('translations', $translations)
+            ->with('translationData', $translationData)
+            ->with('locales', $locales)
+            ->with('group', $group)
+            ->with('ref_lang', $ref_lang)
+            ->with('editUrl', route('translations.group.edit', ['group' => $group]));
     }
 
     public function getLang(): array
@@ -260,7 +262,7 @@ class VigAutoTranslationsController extends BaseController
                         }
 
                         $translations = require $file->getPathname();
-                        $langArray[$filePath]  = Arr::dot($translations);
+                        $langArray[$filePath] = Arr::dot($translations);
                     }
                 }
             }
@@ -274,7 +276,7 @@ class VigAutoTranslationsController extends BaseController
         $group = $request->input('group');
         $locale = $request->input('ref_lang');
 
-        $allTranslations = $translations = $this->getLang()[$group];
+        $allTranslations = $this->getLang()[$group];
 
         foreach ($allTranslations as $key => $value) {
             $value = vig_auto_translate('en', $locale, $value);
@@ -284,11 +286,11 @@ class VigAutoTranslationsController extends BaseController
         return $response;
     }
 
-    public function postPluginsTranslations(TranslationRequest $request, BaseHttpResponse $response)
+    public function postPluginsTranslations(TranslationRequest $request, Manager $manager, BaseHttpResponse $response)
     {
         $group = $request->input('group');
 
-        if (! in_array($group, $this->manager->getConfig('exclude_groups'))) {
+        if (! in_array($group, $manager->getConfig('exclude_groups'))) {
             $name = $request->input('name');
             $value = $request->input('value');
 
@@ -311,7 +313,7 @@ class VigAutoTranslationsController extends BaseController
             'group' => $group,
             'key' => $key,
         ]);
-        $translation->value = (string)$value ?: null;
+        $translation->value = $value ?: null;
         $translation->status = Translation::STATUS_CHANGED;
         $translation->save();
     }

@@ -12,13 +12,10 @@ use Illuminate\Support\Str;
  */
 class ChatGPTTranslator
 {
-    /**
-     * @inheritDoc
-     */
     public function translate(string $line, string $to, string $from): ?string
     {
         $api_key = setting('vig_translate_chatgpt_key', config('plugins.vig-auto-translations.general.chatgpt_key'));
-        $client = new Client();
+        $client = new Client(['verify' => false]);
 
         //Make a POST request to the OpenAI API
         $response = $client->post('https://api.openai.com/v1/completions', [

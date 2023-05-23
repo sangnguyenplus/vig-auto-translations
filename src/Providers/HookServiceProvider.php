@@ -29,7 +29,12 @@ class HookServiceProvider extends ServiceProvider
 
     public function addHeadingToTranslationTable(array $headings, Model|string|null $model): array
     {
-        if (! $model || ! is_in_admin(true) || ! Route::is('translations.theme-translations') || ! Auth::user()->hasPermission('vig-auto-translations.index')) {
+        if (
+            ! $model ||
+            ! is_in_admin(true) ||
+            ! Route::is('translations.theme-translations') ||
+            ! Auth::user()->hasPermission('vig-auto-translations.index')
+        ) {
             return $headings;
         }
 
@@ -48,7 +53,12 @@ class HookServiceProvider extends ServiceProvider
 
     public function addColumnToTranslationTable(EloquentDataTable|CollectionDataTable $data, Model|string|null $model): EloquentDataTable|CollectionDataTable
     {
-        if (! $model || ! is_in_admin(true) || ! Route::is('translations.theme-translations') || ! Auth::user()->hasPermission('vig-auto-translations.index')) {
+        if (
+            ! $model ||
+            ! is_in_admin(true) ||
+            ! Route::is('translations.theme-translations') ||
+            ! Auth::user()->hasPermission('vig-auto-translations.index')
+        ) {
             return $data;
         }
 

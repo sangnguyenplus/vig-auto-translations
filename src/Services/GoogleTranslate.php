@@ -22,9 +22,6 @@ use Throwable;
  */
 class GoogleTranslate
 {
-    /**
-     * @var \GuzzleHttp\Client HTTP Client
-     */
     protected Client $client;
 
     /**
@@ -93,9 +90,6 @@ class GoogleTranslate
         '/\[,/' => '[',
     ];
 
-    /**
-     * @var TokenProviderInterface Token provider
-     */
     protected TokenProviderInterface $tokenProvider;
 
     /**
