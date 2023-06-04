@@ -33,6 +33,11 @@ class ChatGPTTranslator implements Translator
 
         $translated = (string)$response->json('choices.0.text');
 
+        $translated = str_replace("$source: ", '', $translated);
+        $translated = str_replace(ucfirst($source) . ': ', '', $translated);
+        $translated = str_replace("<$source>", '', $translated);
+        $translated = str_replace("</$source>", '', $translated);
+
         return Str::squish($translated ?: $value);
     }
 }

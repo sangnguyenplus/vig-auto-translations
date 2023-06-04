@@ -4,7 +4,6 @@ namespace VigStudio\VigAutoTranslations\Http\Controllers;
 
 use Assets;
 use BaseHelper;
-use Theme;
 use Botble\Base\Supports\Language;
 use Botble\Base\Http\Controllers\BaseController;
 use Botble\Base\Http\Responses\BaseHttpResponse;
