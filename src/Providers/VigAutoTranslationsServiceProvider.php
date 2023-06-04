@@ -5,6 +5,11 @@ namespace VigStudio\VigAutoTranslations\Providers;
 use Illuminate\Support\ServiceProvider;
 use Botble\Base\Traits\LoadAndPublishDataTrait;
 use Illuminate\Routing\Events\RouteMatched;
+use VigStudio\VigAutoTranslations\Commands\AutoTranslateCommand;
+use VigStudio\VigAutoTranslations\Manager;
+use VigStudio\VigAutoTranslations\Services\AWSTranslator;
+use VigStudio\VigAutoTranslations\Services\ChatGPTTranslator;
+use VigStudio\VigAutoTranslations\Services\GoogleTranslator;
 
 class VigAutoTranslationsServiceProvider extends ServiceProvider
 {
@@ -13,6 +18,22 @@ class VigAutoTranslationsServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->setNamespace('plugins/vig-auto-translations')->loadHelpers();
+
+        $this->app->singleton(Manager::class, function () {
+            $manager = new Manager();
+
+            $driver = setting('vig_translate_driver');
+
+            if ($driver === 'chatgpt') {
+                return $manager->setDriver(new ChatGPTTranslator());
+            }
+
+            if ($driver === 'aws') {
+                return $manager->setDriver(new AWSTranslator());
+            }
+
+            return $manager->setDriver(new GoogleTranslator());
+        });
     }
 
     public function boot(): void
@@ -22,6 +43,8 @@ class VigAutoTranslationsServiceProvider extends ServiceProvider
             ->loadAndPublishTranslations()
             ->loadAndPublishViews()
             ->loadRoutes();
+
+        $this->commands(AutoTranslateCommand::class);
 
         $this->app->booted(function () {
             $this->app->register(HookServiceProvider::class);

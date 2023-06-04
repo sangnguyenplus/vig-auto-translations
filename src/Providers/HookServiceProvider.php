@@ -2,7 +2,7 @@
 
 namespace VigStudio\VigAutoTranslations\Providers;
 
-use Botble\Base\Facades\Assets;
+use Assets;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;

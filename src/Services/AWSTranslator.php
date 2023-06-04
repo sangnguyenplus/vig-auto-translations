@@ -5,15 +5,16 @@ namespace VigStudio\VigAutoTranslations\Services;
 use Aws\Exception\AwsException;
 use Aws\Translate\TranslateClient;
 use Illuminate\Support\Facades\Log;
+use VigStudio\VigAutoTranslations\Contracts\Translator;
 
 /**
  * Use the AWS Translate service
  *
  * https://aws.amazon.com/translate/
  */
-class AWSTranslator
+class AWSTranslator implements Translator
 {
-    public function translate(string $line, string $to, string $from): ?string
+    public function translate(string $source, string $target, string $value): string|null
     {
         $config = $this->loadAWSConfiguration();
 
@@ -21,20 +22,23 @@ class AWSTranslator
 
         try {
             $result = $client->translateText([
-                'SourceLanguageCode' => $from,
-                'TargetLanguageCode' => $to,
-                'Text' => $line,
+                'SourceLanguageCode' => $source,
+                'TargetLanguageCode' => $target,
+                'Text' => $value,
             ]);
+
             if ($result->hasKey('TranslatedText')) {
                 return $result->get('TranslatedText');
             }
+
+            return $value;
         } catch (AwsException $e) {
             if (config('plugins.vig-auto-translations.general.log_errors', true)) {
                 Log::warning($e->getMessage());
             }
-        }
 
-        return null;
+            return $value;
+        }
     }
 
     /**
@@ -43,12 +47,13 @@ class AWSTranslator
     private function loadAWSConfiguration(): array
     {
         return [
-            'version' => config('plugins.vig-auto-translations.general.aws_key', 'latest'),
+            'version' => config('plugins.vig-auto-translations.general.aws_version', 'latest'),
             'region' => setting('vig_translate_aws_region', config('plugins.vig-auto-translations.general.aws_region')),
             'credentials' => [
                 'key' => setting('vig_translate_aws_key', config('plugins.vig-auto-translations.general.aws_key')),
                 'secret' => setting('vig_translate_aws_secret', config('plugins.vig-auto-translations.general.aws_secret')),
             ],
+            'verify' => false,
         ];
     }
 }
