@@ -14,9 +14,14 @@ use Botble\Translation\Http\Requests\TranslationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
+use VigStudio\VigAutoTranslations\Manager as AutoTranslateManager;
 
 class VigAutoTranslationsController extends BaseController
 {
+    public function __construct(protected AutoTranslateManager $autoTranslateManager)
+    {
+    }
+
     public function getThemeTranslations(Request $request)
     {
         page_title()->setTitle(trans('plugins/vig-auto-translations::vig-auto-translations.title'));
@@ -54,45 +59,7 @@ class VigAutoTranslationsController extends BaseController
             );
         }
 
-        $translations = [];
-        if ($group) {
-            $jsonFile = lang_path($group['locale'] . '.json');
-
-            if (! File::exists($jsonFile)) {
-                $jsonFile = theme_path(Theme::getThemeName() . '/lang/' . $group['locale'] . '.json');
-            }
-
-            if (! File::exists($jsonFile)) {
-                $languages = BaseHelper::scanFolder(theme_path(Theme::getThemeName() . '/lang'));
-
-                if (! empty($languages)) {
-                    $jsonFile = theme_path(Theme::getThemeName() . '/lang/' . Arr::first($languages));
-                }
-            }
-
-            if (File::exists($jsonFile)) {
-                $translations = BaseHelper::getFileData($jsonFile);
-            }
-
-            if ($group['locale'] != 'en') {
-                $defaultEnglishFile = theme_path(Theme::getThemeName() . '/lang/en.json');
-
-                if ($defaultEnglishFile) {
-                    $enTranslations = BaseHelper::getFileData($defaultEnglishFile);
-                    $translations = array_merge($enTranslations, $translations);
-
-                    $enTranslationKeys = array_keys($enTranslations);
-
-                    foreach ($translations as $key => $translation) {
-                        if (! in_array($key, $enTranslationKeys)) {
-                            Arr::forget($translations, $key);
-                        }
-                    }
-                }
-            }
-        }
-
-        ksort($translations);
+        $translations = $this->autoTranslateManager->getThemeTranslations($group['locale']);
 
         return [
             'translations' => $translations,
@@ -117,58 +84,16 @@ class VigAutoTranslationsController extends BaseController
         $value = $request->input('value');
 
         if ($request->input('auto') == 'true') {
-            $value = vig_auto_translate('en', $locale, $name);
+            $value = $this->autoTranslateManager->translate('en', $locale, $name);
         }
 
         if ($locale) {
-            $this->saveTranslations($locale, [$name => $value]);
+            $this->autoTranslateManager->saveThemeTranslations($locale, [$name => $value]);
         }
 
         return $response
             ->setPreviousUrl(route('vig-auto-translations.theme'))
             ->setMessage(trans('core/base::notices.update_success_message'));
-    }
-
-    public function saveTranslations(string $locale, array $newTranslations): void
-    {
-        $translations = [];
-
-        $jsonFile = lang_path($locale . '.json');
-
-        if (! File::exists($jsonFile)) {
-            $jsonFile = theme_path(Theme::getThemeName() . '/lang/' . $locale . '.json');
-        }
-
-        if (File::exists($jsonFile)) {
-            $translations = BaseHelper::getFileData($jsonFile);
-        }
-
-        if ($locale != 'en') {
-            $defaultEnglishFile = theme_path(Theme::getThemeName() . '/lang/en.json');
-
-            if ($defaultEnglishFile) {
-                $enTranslations = BaseHelper::getFileData($defaultEnglishFile);
-                $translations = array_merge($enTranslations, $translations);
-
-                $enTranslationKeys = array_keys($enTranslations);
-
-                foreach ($translations as $key => $translation) {
-                    if (! in_array($key, $enTranslationKeys)) {
-                        Arr::forget($translations, $key);
-                    }
-                }
-            }
-        }
-
-        ksort($translations);
-
-        $translations = array_combine(array_map('trim', array_keys($translations)), $translations);
-
-        foreach ($newTranslations as $key => $value) {
-            $translations[$key] = $value;
-        }
-
-        File::put(lang_path($locale . '.json'), BaseHelper::jsonEncodePrettify($translations));
     }
 
     public function postThemeAllTranslations(Request $request, BaseHttpResponse $response)
@@ -180,12 +105,14 @@ class VigAutoTranslationsController extends BaseController
         BaseHelper::maximumExecutionTimeAndMemoryLimit();
 
         foreach ($translations as $key => $translation) {
-            if ($key == $translation) {
-                $translations[$key] = vig_auto_translate('en', $locale, $key);
+            if ($key !== $translation) {
+                continue;
             }
+
+            $translations[$key] = $this->autoTranslateManager->translate('en', $locale, $key);
         }
 
-        $this->saveTranslations($locale, $translations);
+        $this->autoTranslateManager->saveThemeTranslations($locale, $translations);
 
         return $response
             ->setPreviousUrl(route('vig-auto-translations.theme'))
@@ -201,13 +128,17 @@ class VigAutoTranslationsController extends BaseController
             ->addStylesDirectly('vendor/core/plugins/translation/css/translation.css');
 
         $group = $request->input('group');
-        $ref_lang = $request->input('ref_lang');
+        $refLang = $request->input('ref_lang');
 
         $translations = $this->getLang();
 
         $locales = Language::getAvailableLocales();
 
-        $allTranslations = Translation::where('group', $group)->where('locale', $ref_lang)->orderBy('key')->get();
+        $allTranslations = Translation::query()
+            ->where('group', $group)
+            ->where('locale', $refLang)
+            ->orderBy('key')
+            ->get();
         $translationData = [];
         foreach ($allTranslations as $translation) {
             $translationData[$translation->key] = $translation;
@@ -218,7 +149,7 @@ class VigAutoTranslationsController extends BaseController
             ->with('translationData', $translationData)
             ->with('locales', $locales)
             ->with('group', $group)
-            ->with('ref_lang', $ref_lang)
+            ->with('ref_lang', $refLang)
             ->with('editUrl', route('translations.group.edit', ['group' => $group]));
     }
 
@@ -279,7 +210,7 @@ class VigAutoTranslationsController extends BaseController
         $allTranslations = $this->getLang()[$group];
 
         foreach ($allTranslations as $key => $value) {
-            $value = vig_auto_translate('en', $locale, $value);
+            $value = $this->autoTranslateManager->translate('en', $locale, $value);
             $this->firstOrNewTranslation($locale, $group, $key, $value);
         }
 
@@ -297,7 +228,7 @@ class VigAutoTranslationsController extends BaseController
             [$locale, $key] = explode('|', $name, 2);
 
             if ($request->input('auto') == 'true') {
-                $value = vig_auto_translate('en', $locale, $value);
+                $value = $this->autoTranslateManager->translate('en', $locale, $value);
             }
 
             $this->firstOrNewTranslation($locale, $group, $key, $value);
@@ -308,7 +239,7 @@ class VigAutoTranslationsController extends BaseController
 
     public function firstOrNewTranslation(string $locale, string $group, string $key, string $value): void
     {
-        $translation = Translation::firstOrNew([
+        $translation = Translation::query()->firstOrNew([
             'locale' => $locale,
             'group' => $group,
             'key' => $key,
@@ -323,7 +254,7 @@ class VigAutoTranslationsController extends BaseController
         if (($locale = $request->input('locale')) &&
             ($name = $request->input('name')) &&
             in_array($locale, array_keys(Language::getAvailableLocales()))) {
-            $value = vig_auto_translate('en', $locale, $name);
+            $value = $this->autoTranslateManager->translate('en', $locale, $name);
 
             return $response->setData([$locale => $value]);
         }
