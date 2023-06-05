@@ -2,9 +2,11 @@
 
 namespace VigStudio\VigAutoTranslations\Commands;
 
+use BaseHelper;
 use Illuminate\Console\Command;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputOption;
 use VigStudio\VigAutoTranslations\Manager;
 
 #[AsCommand('vig-translate:auto', 'Auto translate from English to a new language')]
@@ -22,7 +24,11 @@ class AutoTranslateCommand extends Command
 
         $manager = app(Manager::class);
 
-        $translations = $manager->getThemeTranslations($locale);
+        if ($path = $this->option('path')) {
+            $translations = BaseHelper::getFileData($this->option('path'));
+        } else {
+            $translations = $manager->getThemeTranslations($locale);
+        }
 
         $this->info(sprintf('Translating %d words.', count($translations)));
 
@@ -32,14 +38,27 @@ class AutoTranslateCommand extends Command
                 continue;
             }
 
-            $this->info(sprintf('Translating "%s"', $key));
+            $translated = $manager->translate('en', $locale, $key);
 
-            $translations[$key] = $manager->translate('en', $locale, $key);
+            if ($translated != $key) {
+                $this->info(sprintf('Translated "%s" to "%s"', $key, $translated));
 
-            $count++;
+                $translations[$key] = $translated;
+
+                $count++;
+            }
         }
 
-        $manager->saveThemeTranslations($locale, $translations);
+        if ($path) {
+            $themeName = basename(dirname($path, 2));
+            if (str_contains($path, 'lang/vendor/themes')) {
+                $themeName = basename(dirname($path));
+            }
+
+            BaseHelper::saveFileData(lang_path("vendor/themes/$themeName/$locale.json"), $translations);
+        } else {
+            $manager->saveThemeTranslations($locale, $translations);
+        }
 
         $this->components->info(sprintf('Done! %d has been translated.', $count));
 
@@ -49,5 +68,6 @@ class AutoTranslateCommand extends Command
     protected function configure(): void
     {
         $this->addArgument('locale', InputArgument::REQUIRED, 'The locale name that you want to translate');
+        $this->addOption('path', null, InputOption::VALUE_REQUIRED, 'Path to the original JSON file');
     }
 }

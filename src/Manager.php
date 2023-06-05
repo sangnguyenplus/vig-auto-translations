@@ -3,6 +3,7 @@
 namespace VigStudio\VigAutoTranslations;
 
 use BaseHelper;
+use Illuminate\Support\Str;
 use Theme;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
@@ -21,7 +22,29 @@ class Manager
 
     public function translate(string $source, string $target, string $value): string|null
     {
-        return $this->translator->translate($source, $target, $value);
+        $originalValue = $value;
+
+        $value = str_replace('%', '#_#', $value);
+
+        $variables = array_values(array_filter(explode(' ', $value), fn ($item) => Str::startsWith($item, ':')));
+
+        foreach ($variables as $item) {
+            $value = str_replace($item, '%s', $value);
+        }
+
+        $translated = $this->translator->translate($source, $target, $value);
+        $translated = sprintf($translated, ...$variables);
+
+        $translated = str_replace('#_#', '%', $translated);
+        $translated = str_replace('#_ #', '%', $translated);
+
+        $translatedVariables = array_values(array_filter(explode(' ', $translated), fn ($item) => Str::startsWith($item, ':')));
+
+        if (count($translatedVariables) == count($variables)) {
+            return $translated;
+        }
+
+        return $originalValue;
     }
 
     public function getThemeTranslations(string $locale): array
