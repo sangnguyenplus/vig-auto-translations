@@ -49,17 +49,15 @@ class AutoTranslateCommand extends Command
             }
         }
 
-        if ($count) {
-            if ($path) {
-                $themeName = basename(dirname($path, 2));
-                if (str_contains($path, 'lang/vendor/themes')) {
-                    $themeName = basename(dirname($path));
-                }
-
-                BaseHelper::saveFileData(lang_path("vendor/themes/$themeName/$locale.json"), $translations);
-            } else {
-                $manager->saveThemeTranslations($locale, $translations);
+        if ($path) {
+            $themeName = basename(dirname($path, 2));
+            if (str_contains($path, 'lang/vendor/themes')) {
+                $themeName = basename(dirname($path));
             }
+
+            BaseHelper::saveFileData(lang_path("vendor/themes/$themeName/$locale.json"), $translations);
+        } else {
+            $manager->saveThemeTranslations($locale, $translations);
         }
 
         $this->components->info(sprintf('Done! %d has been translated.', $count));
