@@ -24,10 +24,10 @@ class AutoTranslateCommand extends Command
 
         $manager = app(Manager::class);
 
-        if (! $this->option('path')) {
-            $translations = $manager->getThemeTranslations($locale);
-        } else {
+        if ($path = $this->option('path')) {
             $translations = BaseHelper::getFileData($this->option('path'));
+        } else {
+            $translations = $manager->getThemeTranslations($locale);
         }
 
         $this->info(sprintf('Translating %d words.', count($translations)));
@@ -43,15 +43,22 @@ class AutoTranslateCommand extends Command
             if ($translated != $key) {
                 $this->info(sprintf('Translated "%s" to "%s"', $key, $translated));
 
+                $translations[$key] = $translated;
+
                 $count++;
             }
         }
 
         if ($count) {
-            if (! $this->option('path')) {
-                $manager->saveThemeTranslations($locale, $translations);
+            if ($path) {
+                $themeName = basename(dirname($path, 2));
+                if (str_contains($path, 'lang/vendor/themes')) {
+                    $themeName = basename(dirname($path));
+                }
+
+                BaseHelper::saveFileData(lang_path("vendor/themes/$themeName/$locale.json"), $translations);
             } else {
-                BaseHelper::saveFileData(lang_path('vendor/themes/' . basename(dirname($this->option('path'), 2)) . '/' . $locale . '.json'), $translations);
+                $manager->saveThemeTranslations($locale, $translations);
             }
         }
 

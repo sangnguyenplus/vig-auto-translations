@@ -24,6 +24,8 @@ class Manager
     {
         $originalValue = $value;
 
+        $value = str_replace('%', '#_#', $value);
+
         $variables = array_values(array_filter(explode(' ', $value), fn ($item) => Str::startsWith($item, ':')));
 
         foreach ($variables as $item) {
@@ -32,6 +34,9 @@ class Manager
 
         $translated = $this->translator->translate($source, $target, $value);
         $translated = sprintf($translated, ...$variables);
+
+        $translated = str_replace('#_#', '%', $translated);
+        $translated = str_replace('#_ #', '%', $translated);
 
         $translatedVariables = array_values(array_filter(explode(' ', $translated), fn ($item) => Str::startsWith($item, ':')));
 
