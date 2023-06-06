@@ -14,7 +14,7 @@ class AutoTranslateCommand extends Command
 {
     public function handle(): int
     {
-        if (! preg_match('/^[a-z0-9\-]+$/i', $this->argument('locale'))) {
+        if (! preg_match('/^[a-z0-9\-_]+$/i', $this->argument('locale'))) {
             $this->components->error('Only alphabetic characters are allowed.');
 
             return self::FAILURE;

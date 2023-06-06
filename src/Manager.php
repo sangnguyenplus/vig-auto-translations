@@ -7,6 +7,7 @@ use Illuminate\Support\Str;
 use Theme;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
+use Throwable;
 use VigStudio\VigAutoTranslations\Contracts\Translator;
 
 class Manager
@@ -32,19 +33,25 @@ class Manager
             $value = str_replace($item, '%s', $value);
         }
 
-        $translated = $this->translator->translate($source, $target, $value);
-        $translated = sprintf($translated, ...$variables);
+        try {
+            $translated = $this->translator->translate($source, $target, $value);
 
-        $translated = str_replace('#_#', '%', $translated);
-        $translated = str_replace('#_ #', '%', $translated);
+            $translatedVariables = array_values(array_filter(explode(' ', $translated), fn ($item) => Str::startsWith($item, ':')));
 
-        $translatedVariables = array_values(array_filter(explode(' ', $translated), fn ($item) => Str::startsWith($item, ':')));
+            if (count($translatedVariables) == count($variables)) {
+                $translated = sprintf($translated, ...$variables);
 
-        if (count($translatedVariables) == count($variables)) {
-            return $translated;
+                $translated = str_replace('#_#', '%', $translated);
+
+                return str_replace('#_ #', '%', $translated);
+            }
+
+            return $originalValue;
+        } catch (Throwable) {
+            info(sprintf('Translation issue for value "%s", locale "%s', $value, $target));
+
+            return $originalValue;
         }
-
-        return $originalValue;
     }
 
     public function getThemeTranslations(string $locale): array
