@@ -7,7 +7,6 @@ use Illuminate\Support\Str;
 use Theme;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
-use Throwable;
 use VigStudio\VigAutoTranslations\Contracts\Translator;
 
 class Manager
@@ -27,31 +26,39 @@ class Manager
 
         $value = str_replace('%', '#_#', $value);
 
-        $variables = array_values(array_filter(explode(' ', $value), fn ($item) => Str::startsWith($item, ':')));
+        $variables = $this->findVariablesByRule($value, ':');
 
         foreach ($variables as $item) {
             $value = str_replace($item, '%s', $value);
         }
 
-        try {
-            $translated = $this->translator->translate($source, $target, $value);
+        $translated = $this->translator->translate($source, $target, $value);
 
-            $translatedVariables = array_values(array_filter(explode(' ', $translated), fn ($item) => Str::startsWith($item, ':')));
+        $translated = str_replace('%S', '%s', $translated);
 
-            if (count($translatedVariables) == count($variables)) {
-                $translated = sprintf($translated, ...$variables);
-
-                $translated = str_replace('#_#', '%', $translated);
-
-                return str_replace('#_ #', '%', $translated);
-            }
-
-            return $originalValue;
-        } catch (Throwable) {
-            info(sprintf('Translation issue for value "%s", locale "%s', $value, $target));
-
+        if (count($this->findVariablesByRule($translated, '%s')) !== count($variables)) {
             return $originalValue;
         }
+
+        $translated = sprintf($translated, ...$variables);
+
+        $translated = str_replace('#_#', '%', $translated);
+        $translated = str_replace('#_ #', '%', $translated);
+
+        $translatedVariables = $this->findVariablesByRule($translated, '%s');
+
+        if (count($translatedVariables) == count($variables)) {
+            return $translated;
+        }
+
+        return $originalValue;
+    }
+
+    protected function findVariablesByRule(string $text, string $rule): array
+    {
+        return array_values(array_filter(explode(' ', $text), function ($item) use ($rule) {
+            return str_replace($rule, '', $item) && Str::startsWith($item, $rule);
+        }));
     }
 
     public function getThemeTranslations(string $locale): array
