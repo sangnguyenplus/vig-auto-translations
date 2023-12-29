@@ -2,11 +2,13 @@
 
 namespace VigStudio\VigAutoTranslations\Providers;
 
-use Illuminate\Support\ServiceProvider;
+use Botble\Base\Facades\PanelSectionManager;
 use Botble\Base\Traits\LoadAndPublishDataTrait;
 use Illuminate\Routing\Events\RouteMatched;
+use Illuminate\Support\ServiceProvider;
 use VigStudio\VigAutoTranslations\Commands\AutoTranslateCommand;
 use VigStudio\VigAutoTranslations\Manager;
+use VigStudio\VigAutoTranslations\PanelSections\TranslatePanelSection;
 use VigStudio\VigAutoTranslations\Services\AWSTranslator;
 use VigStudio\VigAutoTranslations\Services\ChatGPTTranslator;
 use VigStudio\VigAutoTranslations\Services\GoogleTranslator;
@@ -23,16 +25,13 @@ class VigAutoTranslationsServiceProvider extends ServiceProvider
             $manager = new Manager();
 
             $driver = setting('vig_translate_driver');
+            $withoutDatabase = setting('vig_translate_without_database', false);
 
-            if ($driver === 'chatgpt') {
-                return $manager->setDriver(new ChatGPTTranslator());
-            }
-
-            if ($driver === 'aws') {
-                return $manager->setDriver(new AWSTranslator());
-            }
-
-            return $manager->setDriver(new GoogleTranslator());
+            return match ($driver) {
+                'chatgpt' => $manager->setDriver(new ChatGPTTranslator())->setWithoutDatabase($withoutDatabase),
+                'aws' => $manager->setDriver(new AWSTranslator())->setWithoutDatabase($withoutDatabase),
+                default => $manager->setDriver(new GoogleTranslator())->setWithoutDatabase($withoutDatabase),
+            };
         });
     }
 
@@ -40,6 +39,7 @@ class VigAutoTranslationsServiceProvider extends ServiceProvider
     {
         $this
             ->loadAndPublishConfigurations(['permissions', 'general'])
+            ->loadMigrations()
             ->loadAndPublishTranslations()
             ->loadAndPublishViews()
             ->loadRoutes();
@@ -48,6 +48,10 @@ class VigAutoTranslationsServiceProvider extends ServiceProvider
 
         $this->app->booted(function () {
             $this->app->register(HookServiceProvider::class);
+        });
+
+        PanelSectionManager::beforeRendering(function () {
+            PanelSectionManager::register(TranslatePanelSection::class);
         });
 
         $this->app['events']->listen(RouteMatched::class, function () {

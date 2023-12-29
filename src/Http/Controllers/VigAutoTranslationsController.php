@@ -4,12 +4,12 @@ namespace VigStudio\VigAutoTranslations\Http\Controllers;
 
 use Assets;
 use BaseHelper;
-use Botble\Base\Supports\Language;
 use Botble\Base\Http\Controllers\BaseController;
 use Botble\Base\Http\Responses\BaseHttpResponse;
+use Botble\Base\Supports\Language;
+use Botble\Translation\Http\Requests\TranslationRequest;
 use Botble\Translation\Manager;
 use Botble\Translation\Models\Translation;
-use Botble\Translation\Http\Requests\TranslationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
@@ -70,6 +70,10 @@ class VigAutoTranslationsController extends BaseController
 
     public function postThemeTranslations(Request $request, BaseHttpResponse $response)
     {
+        if (! File::isDirectory(lang_path())) {
+            File::makeDirectory(lang_path());
+        }
+
         if (! File::isWritable(lang_path())) {
             return $response
                 ->setError()
@@ -87,7 +91,13 @@ class VigAutoTranslationsController extends BaseController
         }
 
         if ($locale) {
-            $this->autoTranslateManager->saveThemeTranslations($locale, [$name => $value]);
+            $translations = $this->autoTranslateManager->getThemeTranslations($locale);
+
+            if ($request->has('name') && Arr::has($translations, $request->input('name'))) {
+                $translations[$request->input('name')] = $value;
+            }
+
+            $this->autoTranslateManager->saveThemeTranslations($locale, $translations);
         }
 
         return $response

@@ -3,15 +3,18 @@
 namespace VigStudio\VigAutoTranslations;
 
 use BaseHelper;
-use Illuminate\Support\Str;
-use Theme;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
+use Theme;
 use VigStudio\VigAutoTranslations\Contracts\Translator;
+use VigStudio\VigAutoTranslations\Http\Models\VigTranslate;
 
 class Manager
 {
     protected Translator $translator;
+
+    protected $withoutDatabase = false;
 
     public function setDriver(Translator $translator): self
     {
@@ -20,7 +23,47 @@ class Manager
         return $this;
     }
 
-    public function translate(string $source, string $target, string $value): string|null
+    public function setWithoutDatabase(bool $withoutDatabase): self
+    {
+        $this->withoutDatabase = $withoutDatabase;
+
+        return $this;
+    }
+
+    public function saveTranslation(string $source, string $target, string $originalValue, string $translatedValue): bool
+    {
+        $translation = VigTranslate::where('text_original', $originalValue)
+            ->where('lang_from', $source)
+            ->where('lang_to', $target)
+            ->first();
+
+        if (! $translation) {
+            $translation = new VigTranslate();
+        }
+
+        $translation->text_original = $originalValue;
+        $translation->text_translated = $translatedValue;
+        $translation->lang_from = $source;
+        $translation->lang_to = $target;
+
+        return $translation->save();
+    }
+
+    public function getTranslation(string $source, string $target, string $originalValue): string|null
+    {
+        $translation = VigTranslate::where('text_original', $originalValue)
+            ->where('lang_from', $source)
+            ->where('lang_to', $target)
+            ->first();
+
+        if ($translation) {
+            return $translation->text_translated;
+        }
+
+        return null;
+    }
+
+    public function handle(string $source, string $target, string $value): string|null
     {
         $originalValue = $value;
 
@@ -54,6 +97,21 @@ class Manager
         return $originalValue;
     }
 
+    public function translate(string $source, string $target, string $value): string|null
+    {
+        if($this->withoutDatabase) {
+            return $this->handle($source, $target, $value);
+        }
+
+        $getTranslation = $this->getTranslation($source, $target, $value);
+
+        if($getTranslation) {
+            return $getTranslation;
+        }
+
+        return $this->handle($source, $target, $value);
+    }
+
     protected function findVariablesByRule(string $text, string $rule): array
     {
         return array_values(array_filter(explode(' ', $text), function ($item) use ($rule) {
@@ -63,11 +121,13 @@ class Manager
 
     public function getThemeTranslations(string $locale): array
     {
-        $translations = BaseHelper::getFileData($this->getThemeTranslationPath($locale));
+        $translations = BaseHelper::getFileData($themeTranslationsFilePath = $this->getThemeTranslationPath($locale));
 
         ksort($translations);
 
-        if ($locale !== 'en' && $defaultEnglishFile = theme_path(Theme::getThemeName() . '/lang/en.json')) {
+        $defaultEnglishFile = theme_path(Theme::getThemeName() . '/lang/en.json');
+
+        if ($defaultEnglishFile && ($locale !== 'en' || $defaultEnglishFile !== $themeTranslationsFilePath)) {
             $enTranslations = BaseHelper::getFileData($defaultEnglishFile);
             $translations = array_merge($enTranslations, $translations);
 
