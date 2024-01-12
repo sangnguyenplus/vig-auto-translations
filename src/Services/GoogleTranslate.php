@@ -5,13 +5,13 @@ namespace VigStudio\VigAutoTranslations\Services;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use JsonException;
+use Throwable;
 use VigStudio\VigAutoTranslations\Exceptions\LargeTextException;
 use VigStudio\VigAutoTranslations\Exceptions\RateLimitException;
 use VigStudio\VigAutoTranslations\Exceptions\TranslationDecodingException;
 use VigStudio\VigAutoTranslations\Exceptions\TranslationRequestException;
 use VigStudio\VigAutoTranslations\Tokens\GoogleTokenGenerator;
 use VigStudio\VigAutoTranslations\Tokens\TokenProviderInterface;
-use Throwable;
 
 /**
  * Free Google Translate API PHP Package.

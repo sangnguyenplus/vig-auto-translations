@@ -3,7 +3,7 @@
 namespace VigStudio\VigAutoTranslations;
 
 use Botble\PluginManagement\Abstracts\PluginOperationAbstract;
-use Schema;
+use Illuminate\Support\Facades\Schema;
 
 class Plugin extends PluginOperationAbstract
 {
