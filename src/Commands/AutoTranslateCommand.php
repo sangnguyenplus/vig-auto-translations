@@ -2,7 +2,7 @@
 
 namespace VigStudio\VigAutoTranslations\Commands;
 
-use BaseHelper;
+use Botble\Base\Facades\BaseHelper;
 use Illuminate\Console\Command;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputArgument;

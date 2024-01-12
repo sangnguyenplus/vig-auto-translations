@@ -2,13 +2,11 @@
 
 namespace VigStudio\VigAutoTranslations\Providers;
 
-use Botble\Base\Facades\PanelSectionManager;
 use Botble\Base\Traits\LoadAndPublishDataTrait;
 use Illuminate\Routing\Events\RouteMatched;
 use Illuminate\Support\ServiceProvider;
 use VigStudio\VigAutoTranslations\Commands\AutoTranslateCommand;
 use VigStudio\VigAutoTranslations\Manager;
-use VigStudio\VigAutoTranslations\PanelSections\TranslatePanelSection;
 use VigStudio\VigAutoTranslations\Services\AWSTranslator;
 use VigStudio\VigAutoTranslations\Services\ChatGPTTranslator;
 use VigStudio\VigAutoTranslations\Services\GoogleTranslator;
@@ -50,30 +48,19 @@ class VigAutoTranslationsServiceProvider extends ServiceProvider
             $this->app->register(HookServiceProvider::class);
         });
 
-        PanelSectionManager::beforeRendering(function () {
-            PanelSectionManager::register(TranslatePanelSection::class);
-        });
-
-        $this->app['events']->listen(RouteMatched::class, function () {
-            dashboard_menu()
-                ->registerItem([
-                    'id' => 'cms-plugins-vig-auto-translations',
-                    'priority' => 80,
-                    'parent_id' => 'cms-plugin-translation',
-                    'name' => 'plugins/vig-auto-translations::vig-auto-translations.name_theme',
-                    'icon' => null,
-                    'url' => route('vig-auto-translations.theme'),
-                    'permissions' => ['vig-auto-translations.index'],
-                ]);
-                // ->registerItem([
-                //     'id' => 'cms-plugins-vig-auto-translations-plugin',
-                //     'priority' => 81,
-                //     'parent_id' => 'cms-plugin-translation',
-                //     'name' => 'plugins/vig-auto-translations::vig-auto-translations.name_plugin',
-                //     'icon' => null,
-                //     'url' => route('vig-auto-translations.plugin'),
-                //     'permissions' => ['vig-auto-translations.index'],
-                // ]);
-        });
+        if (version_compare('7.0.0', get_core_version(), '>=')) {
+            $this->app['events']->listen(RouteMatched::class, function () {
+                dashboard_menu()
+                    ->registerItem([
+                        'id' => 'cms-plugins-vig-auto-translations',
+                        'priority' => 80,
+                        'parent_id' => 'cms-plugin-translation',
+                        'name' => 'plugins/vig-auto-translations::vig-auto-translations.name_theme',
+                        'icon' => null,
+                        'url' => route('vig-auto-translations.theme'),
+                        'permissions' => ['vig-auto-translations.index'],
+                    ]);
+            });
+        }
     }
 }

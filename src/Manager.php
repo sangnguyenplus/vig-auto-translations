@@ -2,11 +2,11 @@
 
 namespace VigStudio\VigAutoTranslations;
 
-use BaseHelper;
+use Botble\Base\Facades\BaseHelper;
+use Botble\Theme\Facades\Theme;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
-use Theme;
 use VigStudio\VigAutoTranslations\Contracts\Translator;
 use VigStudio\VigAutoTranslations\Http\Models\VigTranslate;
 
@@ -14,7 +14,7 @@ class Manager
 {
     protected Translator $translator;
 
-    protected $withoutDatabase = false;
+    protected bool $withoutDatabase = false;
 
     public function setDriver(Translator $translator): self
     {
@@ -32,7 +32,8 @@ class Manager
 
     public function saveTranslation(string $source, string $target, string $originalValue, string $translatedValue): bool
     {
-        $translation = VigTranslate::where('text_original', $originalValue)
+        $translation = VigTranslate::query()
+            ->where('text_original', $originalValue)
             ->where('lang_from', $source)
             ->where('lang_to', $target)
             ->first();
@@ -51,7 +52,8 @@ class Manager
 
     public function getTranslation(string $source, string $target, string $originalValue): string|null
     {
-        $translation = VigTranslate::where('text_original', $originalValue)
+        $translation = VigTranslate::query()
+            ->where('text_original', $originalValue)
             ->where('lang_from', $source)
             ->where('lang_to', $target)
             ->first();
