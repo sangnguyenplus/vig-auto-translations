@@ -101,13 +101,19 @@ class Manager
 
     public function translate(string $source, string $target, string $value): string|null
     {
-        if($this->withoutDatabase) {
+        $translated = app(Dictionary::class)->locale($target)->getTranslate($value);
+
+        if ($translated !== $value) {
+            return $translated;
+        }
+
+        if ($this->withoutDatabase) {
             return $this->handle($source, $target, $value);
         }
 
         $getTranslation = $this->getTranslation($source, $target, $value);
 
-        if($getTranslation) {
+        if ($getTranslation) {
             return $getTranslation;
         }
 

@@ -12,19 +12,17 @@ use VigStudio\VigAutoTranslations\Manager;
 #[AsCommand('vig-translate:auto', 'Auto translate from English to a new language')]
 class AutoTranslateCommand extends Command
 {
-    public function handle(): int
+    public function handle(Manager $manager): int
     {
-        if (! preg_match('/^[a-z0-9\-_]+$/i', $this->argument('locale'))) {
+        $locale = $this->argument('locale');
+
+        if (! preg_match('/^[a-z0-9\-_]+$/i', $locale)) {
             $this->components->error('Only alphabetic characters are allowed.');
 
             return self::FAILURE;
         }
 
-        $locale = $this->argument('locale');
-
         $this->components->info(sprintf('Translating %s...', $locale));
-
-        $manager = app(Manager::class);
 
         if ($path = $this->option('path')) {
             $themeName = $this->getThemeNameFromPath($path);
@@ -40,9 +38,10 @@ class AutoTranslateCommand extends Command
             $translations = $manager->getThemeTranslations($locale);
         }
 
-        $this->info(sprintf('Translating %d words.', count($translations)));
+        $this->components->info(sprintf('Translating %d words.', count($translations)));
 
         $count = 0;
+
         foreach ($translations as $key => $translation) {
             if ($key != $translation) {
                 continue;
@@ -51,7 +50,7 @@ class AutoTranslateCommand extends Command
             $translated = $manager->translate('en', $locale, $key);
 
             if ($translated != $key) {
-                $this->info(sprintf('Translated "%s" to "%s"', $key, $translated));
+                $this->components->info(sprintf('Translate: <comment>%s</comment> => <info>%s</info>', $key, $translated));
 
                 $translations[$key] = $translated;
 
