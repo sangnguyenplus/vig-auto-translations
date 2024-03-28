@@ -612,7 +612,7 @@
     "Please select at least 1 product to return!": "Vui lòng chọn ít nhất 1 sản phẩm để đổi trả!",
     "Please select attributes": "Hãy chọn thuộc tính",
     "Please select product options!": "Vui lòng chọn tùy chọn sản phẩm!",
-    "Please solve the following math function: :label = ?": "Vu lòng trả lời câu hỏi: :label = ?",
+    "Please solve the following math function: :label = ?": "Vui lòng trả lời câu hỏi: :label = ?",
     "Please switch currency to any supported currency": "Vui lòng chuyển đổi đơn vị tiền tệ sang bất kỳ đơn vị tiền tệ nào được hỗ trợ",
     "Please wait for the administrator to review and approve!": "Vui lòng chờ quản trị viên xem xét và phê duyệt!",
     "Popular": "Phổ biến",
@@ -1033,5 +1033,10 @@
     "Review:": "Đánh giá:",
     "Select options": "Lựa chọn",
     "The field with (:asterisk) is required.": "Trường có (:asterisk) là bắt buộc.",
-    "Theme Ads": "Quảng cáo của theme"
+    "Theme Ads": "Quảng cáo của theme",
+    "Track your order": "Theo dõi đơn hàng",
+    "Shop by Department": "Danh mục sản phẩm",
+    "Deal of the day": "Khuyến mãi hôm nay",
+    "Top Categories": "Danh mục nổi bật",
+    "I'm shopping for...": "Tìm kiếm..."
 }
