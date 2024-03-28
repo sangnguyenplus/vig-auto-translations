@@ -3,6 +3,7 @@
 namespace VigStudio\VigAutoTranslations;
 
 use Illuminate\Support\Facades\File;
+use Throwable;
 
 class Dictionary
 {
@@ -17,8 +18,18 @@ class Dictionary
 
     public function getTranslate(string $text): string
     {
-        $dictionary = File::json(sprintf(__DIR__ . '/../resources/dictionaries/%s.json', $this->locale));
+        try {
+            $path = sprintf(__DIR__ . '/../resources/dictionaries/%s.json', $this->locale);
 
-        return $dictionary[$text] ?? $text;
+            if (! File::exists($path)) {
+                return $text;
+            }
+
+            $dictionary = File::json($path);
+
+            return $dictionary[$text] ?? $text;
+        } catch (Throwable) {
+            return $text;
+        }
     }
 }
