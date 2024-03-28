@@ -43,10 +43,6 @@ class AutoTranslateCommand extends Command
         $count = 0;
 
         foreach ($translations as $key => $translation) {
-            if ($key != $translation) {
-                continue;
-            }
-
             $translated = $manager->translate('en', $locale, $key);
 
             if ($translated != $key) {
