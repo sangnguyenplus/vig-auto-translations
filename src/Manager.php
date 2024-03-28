@@ -50,7 +50,7 @@ class Manager
         return $translation->save();
     }
 
-    public function getTranslation(string $source, string $target, string $originalValue): ?string
+    public function getTranslation(string $source, string $target, string $originalValue): string|null
     {
         $translation = VigTranslate::query()
             ->where('text_original', $originalValue)
@@ -65,7 +65,7 @@ class Manager
         return null;
     }
 
-    public function handle(string $source, string $target, string $value): ?string
+    public function handle(string $source, string $target, string $value): string|null
     {
         $originalValue = $value;
 
@@ -99,9 +99,9 @@ class Manager
         return $originalValue;
     }
 
-    public function translate(string $source, string $target, string $value): ?string
+    public function translate(string $source, string $target, string $value): string|null
     {
-        $dictionary = app(DictionaryManager::class)->locale($target)->getTranslate($value);
+        $dictionary = app(Dictionary::class)->locale($target)->getTranslate($value);
 
         if ($dictionary !== $value) {
             return $dictionary;

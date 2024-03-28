@@ -4,7 +4,7 @@ namespace VigStudio\VigAutoTranslations;
 
 use Illuminate\Support\Facades\File;
 
-class DictionaryManager
+class Dictionary
 {
     protected string $locale;
 
