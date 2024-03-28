@@ -103,7 +103,7 @@ class Manager
     {
         $translated = app(Dictionary::class)->locale($target)->getTranslate($value);
 
-        if ($translated !== $value) {
+        if ($translated) {
             return $translated;
         }
 
