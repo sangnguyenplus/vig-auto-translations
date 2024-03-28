@@ -101,10 +101,10 @@ class Manager
 
     public function translate(string $source, string $target, string $value): string|null
     {
-        $dictionary = app(Dictionary::class)->locale($target)->getTranslate($value);
+        $translated = app(Dictionary::class)->locale($target)->getTranslate($value);
 
-        if ($dictionary !== $value) {
-            return $dictionary;
+        if ($translated !== $value) {
+            return $translated;
         }
 
         if ($this->withoutDatabase) {
