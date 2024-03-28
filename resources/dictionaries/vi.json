@@ -1,4 +1,5 @@
-{"(:count reviews)": "(:count đánh giá)",
+{
+    "(:count reviews)": "(:count đánh giá)",
     "(:count)": "(:count)",
     "(Shipping fees not included)": "(Chưa bao gồm phí vận chuyển)",
     "-- None --": "-- Không có --",
