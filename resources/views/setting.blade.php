@@ -1,4 +1,7 @@
-<div class="flexbox-annotated-section">
+<script>
+    console.log('testddđ')
+</script>
+{{-- <div class="flexbox-annotated-section">
     <div class="flexbox-annotated-section-annotation">
         <div class="annotated-section-title pd-all-20">
             <h2>{{ trans('plugins/vig-auto-translations::vig-auto-translations.title') }}</h2>
@@ -90,4 +93,4 @@
             </div>
         </div>
     </div>
-</div>
+</div> --}}

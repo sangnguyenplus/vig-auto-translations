@@ -2,7 +2,10 @@
 
 namespace VigStudio\VigAutoTranslations\Providers;
 
+use Botble\Base\Facades\PanelSectionManager;
+use Botble\Base\PanelSections\PanelSectionItem;
 use Botble\Base\Traits\LoadAndPublishDataTrait;
+use Botble\Setting\PanelSections\SettingOthersPanelSection;
 use Illuminate\Routing\Events\RouteMatched;
 use Illuminate\Support\ServiceProvider;
 use VigStudio\VigAutoTranslations\Commands\AutoTranslateCommand;
@@ -46,6 +49,18 @@ class VigAutoTranslationsServiceProvider extends ServiceProvider
 
         $this->app->booted(function () {
             $this->app->register(HookServiceProvider::class);
+        });
+
+        PanelSectionManager::default()->beforeRendering(function () {
+            PanelSectionManager::registerItem(
+                SettingOthersPanelSection::class,
+                fn () => PanelSectionItem::make('blog')
+                    ->setTitle('VigAutoTranslations')
+                    ->withIcon('ti ti-language')
+                    ->withDescription('Dịch tự động')
+                    ->withPriority(120)
+                    ->withRoute('vig-auto-translations.settings')
+            );
         });
 
         if (version_compare('7.0.0', get_core_version(), '>=')) {
