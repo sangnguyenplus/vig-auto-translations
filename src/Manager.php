@@ -7,6 +7,7 @@ use Botble\Theme\Facades\Theme;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
+use Throwable;
 use VigStudio\VigAutoTranslations\Contracts\Translator;
 use VigStudio\VigAutoTranslations\Http\Models\VigTranslate;
 
@@ -85,7 +86,11 @@ class Manager
             return $originalValue;
         }
 
-        $translated = sprintf($translated, ...$variables);
+        try {
+            $translated = sprintf($translated, ...$variables);
+        } catch (Throwable) {
+            return $originalValue;
+        }
 
         $translated = str_replace('#_#', '%', $translated);
         $translated = str_replace('#_ #', '%', $translated);
